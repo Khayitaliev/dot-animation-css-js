@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bekhruz Portfolio Hero</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+body, html {
+  margin:0;
+  padding:0;
+  font-family:'Poppins', sans-serif;
+  height:100%;
+}
+
+.hero {
+  position: relative;
+  min-height: 100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  background-color:#1a1a1a;
+  color:white;
+  padding:0 2rem;
+}
+
+.hero-content {
+  position: relative;
+  z-index:2;
+  display:flex;
+  flex-direction:row;
+  align-items:center;
+  justify-content:space-between;
+  width:100%;
+  max-width:1200px;
+}
+
+.hero-text { flex:1; }
+.hero-text h1 { font-size:3rem; margin-bottom:0.5rem; }
+.hero-text h2 { font-size:2rem; margin-bottom:1rem; }
+.hero-text p { font-size:1.2rem; margin-bottom:1.5rem; }
+.btn {
+  display:inline-block;
+  background:white;
+  color:#1a1a1a;
+  padding:0.75rem 1.5rem;
+  border-radius:8px;
+  font-weight:600;
+  text-decoration:none;
+  transition:0.3s;
+}
+.btn:hover { background: rgba(255,255,255,0.9); }
+
+.hero-image { flex:1; display:flex; justify-content:center; }
+.hero-image img { width:100%; max-width:400px; height:auto; object-fit:contain; }
+
+.animated-text { font-weight:600; }
+.cursor { display:inline-block; animation: blink 0.7s infinite; }
+@keyframes blink { 0%,100% {opacity:0;} 50% {opacity:1;} }
+
+#dot-canvas {
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  z-index:1;
+}
+
+/* Responsive */
+@media(max-width:768px){
+  .hero-content { flex-direction:column; text-align:center; }
+  .hero-image { margin-top:2rem; }
+  .hero-text h1 { font-size:2.5rem; }
+  .hero-text h2 { font-size:1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <canvas id="dot-canvas"></canvas>
+  <div class="hero-content">
+    <div class="hero-text">
+      <h1>Hi, I'm Bekhruz</h1>
+      <h2><span class="animated-text"></span><span class="cursor">|</span></h2>
+      <p>Creating responsive and interactive web experiences</p>
+      <a href="#portfolio" class="btn">View My Work</a>
+    </div>
+    <div class="hero-image">
+      <img src="/images/hero-image.jpg" alt="Bekhruz">
+    </div>
+  </div>
+</section>
+
+<script>
+// Typing animation
+const roles = ["Frontend Developer", "UI/UX Designer"];
+const textEl = document.querySelector(".animated-text");
+let roleIndex = 0, charIndex = 0, forward = true;
+const typingSpeed=80, deletingSpeed=50, pause=1200;
+function type() {
+  const currentRole = roles[roleIndex];
+  if(forward){
+    if(charIndex<currentRole.length){ textEl.textContent+=currentRole.charAt(charIndex); charIndex++; setTimeout(type, typingSpeed); }
+    else { forward=false; setTimeout(type,pause);}
+  }else{
+    if(charIndex>0){ textEl.textContent=currentRole.substring(0,charIndex-1); charIndex--; setTimeout(type,deletingSpeed);}
+    else{ forward=true; roleIndex=(roleIndex+1)%roles.length; setTimeout(type,typingSpeed);}
+  }
+}
+type();
+
+// Dot background with interactive scaling
+const canvas = document.getElementById('dot-canvas');
+const ctx = canvas.getContext('2d');
+let width = canvas.width = window.innerWidth;
+let height = canvas.height = window.innerHeight;
+
+const mouse = { x: null, y: null };
+
+window.addEventListener('mousemove', (e)=> {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+});
+
+window.addEventListener('resize', ()=> {
+  width = canvas.width = window.innerWidth;
+  height = canvas.height = window.innerHeight;
+  init();
+});
+
+class Dot {
+  constructor(x, y, r) {
+    this.x = x;
+    this.y = y;
+    this.baseRadius = r;
+    this.radius = r;
+  }
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+    ctx.fillStyle = 'white';
+    ctx.fill();
+  }
+  update() {
+    if(mouse.x && mouse.y) {
+      const dx = mouse.x - this.x;
+      const dy = mouse.y - this.y;
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      if(dist < 100) {
+        this.radius = this.baseRadius + (100 - dist)/15;
+      } else {
+        this.radius = this.baseRadius;
+      }
+    }
+    this.draw();
+  }
+}
+
+let dotsArray = [];
+function init() {
+  dotsArray = [];
+  const gap = 30;
+  for(let x=gap/2; x<width; x+=gap){
+    for(let y=gap/2; y<height; y+=gap){
+      const r = 3;
+      dotsArray.push(new Dot(x,y,r));
+    }
+  }
+}
+init();
+
+function animate() {
+  ctx.clearRect(0,0,width,height);
+  dotsArray.forEach(dot => dot.update());
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+
+</body>
+</html>
